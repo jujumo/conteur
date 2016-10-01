@@ -19,7 +19,7 @@ class Setup:
         # list possible interfaces
         joysticks = (pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count()))
         # filter the ones that qre called generic ... (thats how my buttons are called)
-        joysticks = [b for b in joysticks if b.get_name().upper().startswith('GENERIC')]
+        joysticks = [b for b in joysticks if 'GENERIC' in b.get_name().upper().split()]
         if not joysticks:
             logging.error('buttons device not found')
             raise EnvironmentError('buttons device not found')
