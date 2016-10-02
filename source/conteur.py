@@ -5,7 +5,7 @@ import argparse
 import logging
 import os
 from glob import glob
-from os.path import abspath, join, isfile
+from os.path import abspath, join, isfile, dirname
 from configparser import ConfigParser
 
 __author__ = 'jumo'
@@ -22,11 +22,11 @@ class Setup:
         joysticks = [b for b in joysticks if 'GENERIC' in b.get_name().upper().split()]
         if not joysticks:
             logging.error('buttons device not found')
-            raise EnvironmentError('buttons device not found')
-        buttons, = joysticks
-        buttons.init()
-        logging.debug('{} connected'.format(buttons.get_name()))
-        # return buttons
+            # raise EnvironmentError('buttons device not found')
+        else:
+            buttons, = joysticks
+            buttons.init()
+            logging.debug('{} connected'.format(buttons.get_name()))
 
     def __init__(self):
         pygame.init()
@@ -132,8 +132,9 @@ def main():
         if __debug__:
             logging.getLogger().setLevel(logging.DEBUG)
 
+        resource_dirpath = abspath(args.input or dirname(__file__))
         setup = Setup()
-        setup.populate_stories(abspath('./'))
+        setup.populate_stories(resource_dirpath)
         setup.main_loop()
 
     except Exception as e:
