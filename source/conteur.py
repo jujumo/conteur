@@ -10,8 +10,6 @@ from configparser import ConfigParser
 
 __author__ = 'jumo'
 
-config_filpath = 'config.ini'
-
 
 class Setup:
     @staticmethod
@@ -28,13 +26,15 @@ class Setup:
             buttons.init()
             logging.debug('{} connected'.format(buttons.get_name()))
 
-    def __init__(self):
+    def __init__(self, resource_dirpath):
         pygame.init()
         pygame.mixer.init()
         pygame.mixer.music.set_volume(1.0)
         pygame.joystick.init()
         self._clock = pygame.time.Clock()
         Setup.init_buttons()
+        self._stories_filepath = abspath(resource_dirpath)
+        self._config_filepath = join(self._stories_filepath, 'config.ini')
         self._stories = None
         self._config = ConfigParser()
         self._playing_id = None
@@ -44,11 +44,8 @@ class Setup:
             window = pygame.display.set_mode((640, 600))
         logging.info('init successful')
 
-    def populate_stories(self, stories_dirpath, selection_number=8):
-        stories = (abspath(f) for f in glob(join(stories_dirpath, '*.mp3')))
-        soties_selected = sorted(stories)
-        del soties_selected[selection_number:]
-        self._stories = soties_selected
+    def populate_stories(self):
+        self._stories = [abspath(f) for f in glob(join(self._stories_filepath, '*.mp3'))]
 
     def play(self, id, start=0):
         if self._playing_id:
@@ -72,8 +69,8 @@ class Setup:
         return pos
 
     def save(self):
-        logging.info('saving {}'.format(config_filpath))
-        with open(config_filpath, 'w') as configfile:
+        logging.info('saving {}'.format(self._config_filepath))
+        with open(self._config_filepath, 'w') as configfile:
             self._config['playing'] = {
                 'id': self._playing_id,
                 'time': self.get_current_time_s()
@@ -81,8 +78,8 @@ class Setup:
             self._config.write(configfile)
 
     def load(self):
-        logging.info('loading {}'.format(config_filpath))
-        self._config.read(config_filpath)
+        logging.info('loading {}'.format(self._config_filepath))
+        self._config.read(self._config_filepath)
         if 'playing' in self._config:
             self.stop()
             playing = self._config['playing']
@@ -134,8 +131,8 @@ def main():
             logging.getLogger().setLevel(logging.DEBUG)
 
         resource_dirpath = abspath(args.input or dirname(__file__))
-        setup = Setup()
-        setup.populate_stories(resource_dirpath)
+        setup = Setup(resource_dirpath)
+        setup.populate_stories()
         setup.main_loop()
 
     except Exception as e:
