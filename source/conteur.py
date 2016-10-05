@@ -51,8 +51,6 @@ class Setup:
         self._stories = soties_selected
 
     def play(self, id, start=0):
-        if id == self._playing_id:
-            return
         if self._playing_id:
             self.stop()
 
@@ -103,13 +101,13 @@ class Setup:
                 if event.type == pygame.QUIT:
                     ask_exit = True
                 elif event.type == pygame.JOYBUTTONDOWN:
-                    logging.info('push button {}'.format(event.button))
-                    if event.button == 10:
-                        self.save()
-                    elif event.button == 11:
-                        self.load()
-                    else:
-                        self.play(event.button)
+                    logging.info('button {}'.format(event.button))
+                    self.play(event.button)
+                elif event.type == 2 and 257 <= event.key <= 265:
+                    # keyboard
+                    num = event.key-257
+                    logging.info('numpad {}'.format(num+1))
+                    self.play(num)
             if self._playing_id is not None:
                 if count == 10:
                     count = 0
@@ -124,9 +122,12 @@ def main():
         parser = argparse.ArgumentParser(description='Conteur is a story teller program triggered by gamepad buttons.')
         parser.add_argument('-v', '--verbose', action='store_true', help='verbose message')
         parser.add_argument('-i', '--input', help='stories directory')
+        parser.add_argument('-l', '--log', help='specify log file')
 
         args = parser.parse_args()
 
+        if args.log:
+            logging.basicConfig(filename=abspath(args.log))
         if args.verbose:
             logging.getLogger().setLevel(logging.INFO)
         if __debug__:
