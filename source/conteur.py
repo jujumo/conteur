@@ -48,14 +48,17 @@ class Speaker:
     def speak(self, message):
         logging.debug('saying: ' + message)
         message_filepath = self.message_filepath(message)
-        if message_filepath in self._voices:
-            self._voices[message_filepath].play()
-        else:
+
+        if message_filepath not in self._voices:
             logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
             try:
-                call(['pico2wave', '-l', '"fr-FR"', '-w', message_filepath, '"{}"'.format(message)])
+                call(['pico2wave', '-l', 'fr-FR', '-w', message_filepath, message])
+                self._voices[message_filepath] = pygame.mixer.Sound(message_filepath)
             except OSError as e:
                 logging.error('pico2wave error')
+
+        if message_filepath in self._voices:
+            self._voices[message_filepath].play()
 
 
 class Buttons:
@@ -91,8 +94,6 @@ class Stories:
         # build infos from files
         self._stories = {int(props['num']): props for props in audio_file_props}
         logging.info('{} stories loaded'.format(str(len(self._stories))))
-        for i, story in self._stories.items():
-            logging.debug(i, story)
 
     def tell(self, id, start_time=0):
         logging.debug('ask the story {}'.format(id))
