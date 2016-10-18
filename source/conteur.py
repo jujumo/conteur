@@ -191,7 +191,7 @@ class Conteur:
                     ask_exit = True
                 elif event.type == pygame.JOYBUTTONDOWN:
                     logging.info('button {}'.format(event.button))
-                    self.button_pushed(event.button)
+                    self.button_pushed(event.button+1)
                 elif event.type == 2 and 257 <= event.key <= 265:
                     # keyboard
                     num = event.key-256
