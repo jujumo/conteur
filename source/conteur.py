@@ -13,6 +13,24 @@ from subprocess import call, Popen
 __author__ = 'jumo'
 
 
+class Config:
+    def __init__(self, filepath):
+        self._filepath = filepath
+        self.data = ConfigParser()
+
+    def load(self):
+        logging.debug('loading config from: {}'.format(self._filepath))
+        self.data.read(self._filepath)
+
+    def save(self):
+        logging.debug('saving config to: {}'.format(self._filepath))
+        with open(self._config_filepath, 'w') as configfile:
+            self.data.write(configfile)
+
+    def set_bookmark(self, story=None, current=None):
+        self.data['BOOKMARK'] = {'story': story, 'current': current}
+
+
 class Speaker:
     def __init__(self, resource_dirpath):
         # make sure voices dir exists
@@ -22,12 +40,6 @@ class Speaker:
         # populate voices
         voices_files = glob(join(self._voices_dirpath, '*.wav'))
         self._voices = {f: pygame.mixer.Sound(f) for f in voices_files}
-        # make sur pico2wav is accessible
-        # if os.name is not 'nt':
-        try:
-            ret = call(['which', 'pico2wave'])
-        except OSError as e:
-            logging.error('which not found')
 
     def message_filepath(self, message):
         hash = re.sub('[^A-Za-z0-9]+', '', message)
@@ -39,8 +51,78 @@ class Speaker:
         if message_filepath in self._voices:
             self._voices[message_filepath].play()
         else:
-            logging.warning('no voice file for: ' + message)
-            # todo: try to create the sound and file
+            logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
+            try:
+                call(['pico2wave', '-l', '"fr-FR"', '-w', message_filepath, '"{}"'.format(message)])
+            except OSError as e:
+                logging.error('pico2wave error')
+
+
+class Buttons:
+    def __init__(self):
+        pygame.joystick.init()
+        joysticks = (pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count()))
+        # filter the ones that qre called generic ... (thats how my buttons are called)
+        joysticks = [b for b in joysticks if 'GENERIC' in b.get_name().upper().split()]
+        if not joysticks:
+            logging.error('buttons device not found')
+            # raise EnvironmentError('buttons device not found')
+            self._joystick = None
+        else:
+            self._joystick, = joysticks
+            self._joystick.init()
+            logging.debug('{} connected'.format(self._joystick.get_name()))
+
+
+class Stories:
+    def __init__(self, dirpath):
+        self._direpath = None
+        self._stories = {}
+        self._current = {}
+        self.populate(dirpath)
+
+    def populate(self, dirpath):
+        logging.info('populating stories in {}'.format(dirpath))
+        self._dirpath = dirpath
+        files = (abspath(f) for f in glob(join(self._dirpath, '*.*')))
+        story_regexp = r'^(?P<filepath>.*[/\\](?P<num>\d+)[\s-]+(?P<name>.+)\.(?P<ext>\w+))$'
+        # select audio files matching name format
+        audio_file_props = (re.match(story_regexp, file).groupdict() for file in files if re.match(story_regexp, file))
+        # build infos from files
+        self._stories = {int(props['num']): props for props in audio_file_props}
+        logging.info('{} stories loaded'.format(str(len(self._stories))))
+        for i, story in self._stories.items():
+            logging.debug(i, story)
+
+    def tell(self, id, start_time=0):
+        logging.debug('ask the story {}'.format(id))
+        if id in self._stories:
+            self._current = self._stories[id]
+            self._current['start'] = start_time
+            logging.debug('the story is {}'.format(self._current['name']))
+            story_filepath = self._current['filepath']
+            pygame.mixer.music.load(story_filepath)
+            pygame.mixer.music.play(start=start_time)
+        else:
+            logging.error('no story {} found.'.format(id))
+
+    def halt(self):
+        self._current = None
+        pygame.mixer.music.stop()
+
+    def get_story(self, id):
+        if id in self._stories:
+            return self._stories[id]
+        else:
+            return None
+
+    def get_bookmark(self):
+        if self._current:
+            current_time = self._current['start']
+            current_time += round(pygame.mixer.music.get_pos() / 1000)
+            return {'story': self._current_story, 'time': current_time}
+        else:
+            return None
 
 
 class Conteur:
@@ -59,103 +141,64 @@ class Conteur:
             logging.debug('{} connected'.format(buttons.get_name()))
 
     def __init__(self, resource_dirpath):
+        # pygame.mixer.pre_init(16000)
         pygame.init()
-        pygame.mixer.init()
+        # pygame.mixer.init(11025)
         pygame.mixer.music.set_volume(1.0)
-        pygame.joystick.init()
+
         self._clock = pygame.time.Clock()
-        Conteur.init_buttons()
+        self._buttons = Buttons()
         self._stories_filepath = abspath(resource_dirpath)
-        self._config_filepath = join(self._stories_filepath, 'config.ini')
-        self._stories = None
-        self._config = ConfigParser()
-        self._selected_id = None
-        self._playing_id = None
-        self._playing_start = 0
+        self._config = Config(join(self._stories_filepath, 'config.ini'))
+        self._stories = Stories(self._stories_filepath)
+        self._select = None
         if os.name is 'nt':
             # windows needs a window to play music
             window = pygame.display.set_mode((640, 600))
-        self.populate_stories()
         self._speaker = Speaker(resource_dirpath)
         logging.info('init successful')
 
-    def populate_stories(self):
-        files = (abspath(f) for f in glob(join(self._stories_filepath, '*.*')))
-        # audio_files = (file for file in files if splitext(file)[1] in audio_extionsion_list)
-        story_regexp = r'^(?P<filepath>.*/(?P<num>\d+)[\s-]+(?P<name>.+)\.(?P<ext>\w+))$'
-        # select audio files matching name format
-        audio_file_props = (re.match(story_regexp, file).groupdict() for file in files if re.match(story_regexp, file))
-        # build infos from files
-        self._stories = {int(g['num']): g for g in audio_file_props}
-
-    def play(self, id, start=0):
-        if self._playing_id:
-            self.stop()
-
-        if id in self._stories:
-            logging.info('start playing {}'.format(id))
-            story_filepath = self._stories[id]['filepath']
-            pygame.mixer.music.load(story_filepath)
-            pygame.mixer.music.play(start=start)
-            self._playing_id = id
-            self._playing_start = start
-
-    def stop(self):
-        pygame.mixer.music.stop()
-        self._playing_id = None
-
     def button_pushed(self, button_id):
         logging.info('button {} pushed.'.format(button_id))
-        self._speaker.speak('{:02d}'.format(button_id))
-
-    def get_current_time_s(self):
-        pos = self._playing_start
-        pos += round(pygame.mixer.music.get_pos() / 1000)
-        return pos
+        self._stories.halt()
+        if self._select == button_id:
+            logging.info('play selection')
+            self._select = None
+            self._stories.tell(button_id)
+        else:
+            story = self._stories.get_story(button_id)
+            if story:
+                self._speaker.speak(story['name'])
+                self._select = button_id
+            else:
+                logging.error('story {} not found.'.format(button_id))
 
     def save(self):
-        logging.info('saving {}'.format(self._config_filepath))
-        with open(self._config_filepath, 'w') as configfile:
-            self._config['playing'] = {
-                'id': self._playing_id,
-                'time': self.get_current_time_s()
-            }
-            self._config.write(configfile)
+        logging.debug('saving status')
+        self._config.save()
 
     def load(self):
-        logging.info('loading {}'.format(self._config_filepath))
-        self._config.read(self._config_filepath)
-        if 'playing' in self._config:
-            self.stop()
-            playing = self._config['playing']
-            id = playing.getint('id')
-            start = playing.getint('time')
-            self.play(id, start)
-        else:
-            self.play(0)
+        logging.info('loading status')
+        self._config.load()
 
     def main_loop(self):
         self.load()
         ask_exit = False
-        count = 0
         while not ask_exit:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == pygame.QUIT or (event.type == 2 and event.key ==pygame.K_ESCAPE):
                     ask_exit = True
                 elif event.type == pygame.JOYBUTTONDOWN:
                     logging.info('button {}'.format(event.button))
                     self.button_pushed(event.button)
                 elif event.type == 2 and 257 <= event.key <= 265:
                     # keyboard
-                    num = event.key-257
+                    num = event.key-256
                     logging.info('numpad {}'.format(num+1))
                     self.button_pushed(num)
-            if self._playing_id is not None:
-                if count == 10:
-                    count = 0
-                    self.save()
-                else:
-                    count += 1
+                elif event.type == 2:
+                    logging.debug('key pressed {}'.format(event.key))
+
             self._clock.tick(5)  # 5 fps
 
 
