@@ -30,7 +30,7 @@ def tts_normalize(filepath_in, filepath_out, rate=22050):
 
 
 def tts_pico(filepath, message):
-    tmp_filepath = get_temp_filepath()
+    tmp_filepath = get_temp_filepath() + '.wav'
     cmd = ['pico2wave', '-l', 'fr-FR', '-w', tmp_filepath, message]
     check_call(cmd)
     tts_normalize(tmp_filepath, filepath)
