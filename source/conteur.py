@@ -133,6 +133,7 @@ class Conteur:
 
     def main_loop(self):
         self.load()
+        self._speaker.speak('bonjour')
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
