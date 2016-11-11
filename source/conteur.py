@@ -141,9 +141,9 @@ class Conteur:
                     ask_exit = True
                 elif event.type == pygame.JOYAXISMOTION:
                     if event.axis == 1 and not event.value == 0:
-                        logging.info('joystick 1{}'.format(event.button))
+                        logging.info('joystick 1{}'.format(event.value))
                     elif event.axis == 2 and not event.value == 0:
-                        logging.info('joystick 2{}'.format(event.button))
+                        logging.info('joystick 2{}'.format(event.value))
                 elif event.type == pygame.JOYBUTTONDOWN:
                     logging.info('button {}'.format(event.button))
                     self.button_pushed(event.button+1)
