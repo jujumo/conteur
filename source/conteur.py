@@ -139,6 +139,8 @@ class Conteur:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == 2 and event.key ==pygame.K_ESCAPE):
                     ask_exit = True
+                elif event.type == pygame.JOYAXISMOTION:
+                    logging.info('joystick {}'.format(event.button))
                 elif event.type == pygame.JOYBUTTONDOWN:
                     logging.info('button {}'.format(event.button))
                     self.button_pushed(event.button+1)
