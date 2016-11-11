@@ -106,6 +106,7 @@ class Conteur:
             # windows needs a window to play music
             window = pygame.display.set_mode((640, 600))
         self._speaker = Speaker(config.voices_dirpath)
+        pygame.mixer.music.set_volume(1.0)
         logging.info('init successful')
 
     def button_pushed(self, button_id):
@@ -122,6 +123,17 @@ class Conteur:
                 self._select = button_id
             else:
                 logging.error('story {} not found.'.format(button_id))
+
+    def volume_increment(self, increment):
+        volume = pygame.mixer.music.get_volume()
+        logging.debug('old volume {}'.format(volume))
+        # apply increment
+        volume += increment/10.0
+        # clamp between 0..1
+        volume = min(max(0, volume), 1)
+        # set
+        pygame.mixer.music.set_volume(volume)
+        logging.info('set volume {}'.format(pygame.mixer.music.get_volume()))
 
     def save(self):
         logging.debug('saving status')
@@ -140,18 +152,23 @@ class Conteur:
                 if event.type == pygame.QUIT or (event.type == 2 and event.key ==pygame.K_ESCAPE):
                     ask_exit = True
                 elif event.type == pygame.JOYAXISMOTION:
-                    if event.axis == 1 and not event.value == 0:
-                        logging.info('joystick 1{}'.format(event.value))
-                    elif event.axis == 2 and not event.value == 0:
-                        logging.info('joystick 2{}'.format(event.value))
+                    if event.axis == 0 and not event.value == 0:
+                        logging.debug('joystick {}'.format(event.value))
+                        self.volume_increment(event.value)
+                    elif event.axis == 1 and not event.value == 0:
+                        logging.debug('joystick 2{}'.format(event.value))
                 elif event.type == pygame.JOYBUTTONDOWN:
-                    logging.info('button {}'.format(event.button))
+                    logging.debug('button {}'.format(event.button))
                     self.button_pushed(event.button+1)
                 elif event.type == 2 and 257 <= event.key <= 265:
                     # keyboard
                     num = event.key-256
-                    logging.info('numpad {}'.format(num+1))
+                    logging.debug('numpad {}'.format(num+1))
                     self.button_pushed(num)
+                elif event.type == 2 and 269 <= event.key <= 270:
+                    increment = -1 if event.key == 269 else 1
+                    logging.debug('key {}'.format(increment))
+                    self.volume_increment(increment)
                 elif event.type == 2:
                     logging.debug('key pressed {}'.format(event.key))
 
