@@ -8,6 +8,7 @@ import urllib.parse
 
 
 VOXYGEN_URL_FMT = 'https://www.voxygen.fr/sites/all/modules/voxygen_voices/assets/proxy/index.php?method=redirect&text={message}&voice={voice}'
+VOICERSS_URL_FMT = 'http://api.voicerss.org/?key=125f646630aa40649a5ef922dea3e76c&hl=fr-fr&src={message}'
 
 
 def get_temp_filepath():
@@ -25,8 +26,11 @@ def tts_normalize(filepath_in, filepath_out, rate=22050):
     else:
         cmd = ['sox', '-t', 'mp3', filepath_in, filepath_out, 'rate', str(rate)]
 
-    success = check_call(cmd)
-    if success is not 0:
+    try:
+        success = check_call(cmd)
+        if success is not 0:
+            return False
+    except:
         return False
 
 
@@ -41,7 +45,7 @@ def tts_pico(filepath, message):
 def tts_voxygen(filepath, message):
     voice = 'Marion'
     message = urllib.parse.quote(message)
-    url = VOXYGEN_URL_FMT.format(message=message, voice=voice)
+    url = VOICERSS_URL_FMT.format(message=message, voice=voice)
     logging.debug('requesting: {}'.format(url))
     tmp_filepath, headers = urllib.request.urlretrieve(url)
     tts_normalize(tmp_filepath, filepath)
