@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+import pygame
+# from pygame.locals import *
+import argparse
+import logging
+import os
+from glob import glob
+from os.path import abspath, join, isfile, dirname, isdir
+import re
+# local includes
+from tts import tts
+
+
+__author__ = 'jumo'
+
+
+class Speaker:
+    def __init__(self, voices_dirpath):
+        # make sure voices dir exists
+        self._voices_dirpath = join(voices_dirpath)
+        if not isdir(self._voices_dirpath):
+            os.makedirs(self._voices_dirpath)
+        # populate voices
+        voices_files = glob(join(self._voices_dirpath, '*.wav'))
+        self._voices = {f: pygame.mixer.Sound(f) for f in voices_files}
+
+    def message_filepath(self, message):
+        hash = re.sub('[^A-Za-z0-9]+', '', message)
+        return join(self._voices_dirpath, hash + '.wav')
+
+    def speak(self, message):
+        logging.debug('saying: ' + message)
+        message_filepath = self.message_filepath(message)
+
+        if message_filepath not in self._voices:
+            logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
+            tts(message_filepath, message)
+            self._voices[message_filepath] = pygame.mixer.Sound(message_filepath)
+
+        if message_filepath in self._voices:
+            self._voices[message_filepath].play()
+
+
