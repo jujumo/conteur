@@ -95,10 +95,10 @@ class Jukebox:
         self.get_current_disk().on_change_track(increment)
         self._speaker.speak(self.get_current_disk().get_current_track().name())
 
-    def on_play(self):
-        # self._speaker.speak('jouer' )
-        # self._speaker.speak(self.get_current_disk().name())
+    def on_info(self):
         self._speaker.speak(self.get_current_disk().get_current_track().name())
+
+    def on_play(self):
         track_filepath = self.get_current_disk().get_current_track().filepath()
         pygame.mixer.music.load(track_filepath)
         pygame.mixer.music.play()
@@ -117,12 +117,12 @@ class Jukebox:
             self.on_track_change(-1)
         elif 3 == button_id:  # button next track
             self.on_track_change(+1)
-        elif 5 == button_id:  # button stop
+        elif 6 == button_id:  # button stop
             self.on_stop()
-        elif 6 == button_id:  # button play
+        elif 7 == button_id:  # button play
             self.on_play()
         else:
-            self._speaker.speak('ce bouton ne fait rien.')
+            self.on_info()
 
     def volume_increment(self, increment):
         volume = pygame.mixer.music.get_volume()
