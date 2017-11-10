@@ -9,7 +9,7 @@ from os.path import abspath, join, isfile, dirname, isdir
 import re
 # local includes
 from tts import tts
-
+from tempfile import gettempdir
 
 __author__ = 'jumo'
 
@@ -36,13 +36,14 @@ class Speaker:
                 os.remove(filepath)
                 pass
 
-    def message_filepath(self, message):
+    def message_filepath(self, message, auto_cache=True):
+        dirpath = self._voices_dirpath if auto_cache else gettempdir()
         hash = re.sub('[^A-Za-z0-9]+', '', message)
-        return join(self._voices_dirpath, hash + '.wav')
+        return join(dirpath, hash + '.wav')
 
-    def speak(self, message):
+    def speak(self, message, auto_cache=True):
         logging.debug('saying: ' + message)
-        message_filepath = self.message_filepath(message)
+        message_filepath = self.message_filepath(message, auto_cache)
 
         if message_filepath not in self._voices:
             logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
