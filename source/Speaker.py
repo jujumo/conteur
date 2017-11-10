@@ -5,7 +5,7 @@ import argparse
 import logging
 import os
 from glob import glob
-from os.path import abspath, join, isfile, dirname, isdir
+from os.path import abspath, join, isfile, dirname, isdir, exists
 import re
 # local includes
 from tts import tts
@@ -47,15 +47,16 @@ class Speaker:
         logging.debug('saying: ' + message)
         message_filepath = self.message_filepath(message, auto_cache)
         if message_filepath not in self._voices:
-            logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
-            tts(message_filepath, message)
+            if not exists(message_filepath):
+                logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
+                tts(message_filepath, message)
             self._voices[message_filepath] = pygame.mixer.Sound(message_filepath)
 
         if message_filepath in self._voices:
             if wait_silence:
                 while pygame.mixer.get_busy():
                     logging.debug('waiting the mixer is idle before speaking again.')
-                    pygame.time.wait(1000)
+                    pygame.time.wait(500)
             self._voices[message_filepath].play()
 
 
