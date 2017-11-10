@@ -4,8 +4,10 @@ import pygame
 import argparse
 import logging
 import os
-from glob import glob
+import time
 from os.path import abspath, join, basename, dirname, isdir, splitext
+from glob import glob
+import locale
 import re
 # local includes
 from Config import Config
@@ -14,6 +16,9 @@ from Speaker import Speaker
 
 
 __author__ = 'jumo'
+
+# force local to FR
+locale.setlocale(locale.LC_TIME, 'fr-FR' if os.name is 'nt' else 'fr_FR')
 
 
 class Track:
@@ -145,7 +150,16 @@ class Jukebox:
 
     def main_loop(self):
         self.load()
+
+        welome_message = 'Nous somme le {week:} {day:} {month:} {year:}.'.format(
+            week=time.strftime('%A'),
+            day=time.strftime('%d') if not int(time.strftime('%d')) == 1 else 'premier',
+            month=time.strftime('%B'),
+            year=time.strftime('%Y')
+        )
+
         self._speaker.speak('bonjour')
+        self._speaker.speak(welome_message, auto_cache=False)
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
