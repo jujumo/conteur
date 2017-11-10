@@ -144,13 +144,15 @@ class Jukebox:
         self._disk_idx_selected += increment
         self._disk_idx_selected %= len(self._disks)
         self._speaker.speak(self.get_current_disk().name())
+        self._speaker.speak(self.get_current_disk().get_current_track().name(), wait_silence=True)
 
     def on_track_change(self, increment):
         self.get_current_disk().on_change_track(increment)
         self._speaker.speak(self.get_current_disk().get_current_track().name())
 
     def on_info(self):
-        self._speaker.speak(self.get_current_disk().get_current_track().name())
+        self._speaker.speak(self.get_current_disk().name(), wait_silence=True)
+        self._speaker.speak(self.get_current_disk().get_current_track().name(), wait_silence=True)
 
     def on_play(self):
         track_filepath = self.get_current_disk().get_current_track().filepath()
@@ -203,6 +205,7 @@ class Jukebox:
         self._speaker.speak('bonjour', wait_silence=True)
         self._speaker.speak(welcome_message(), auto_cache=False, wait_silence=True)
         self._speaker.speak(special_announcements(), wait_silence=True)
+        self.on_info()
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
