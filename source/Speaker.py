@@ -41,16 +41,21 @@ class Speaker:
         hash = re.sub('[^A-Za-z0-9]+', '', message)
         return join(dirpath, hash + '.wav')
 
-    def speak(self, message, auto_cache=True):
+    def speak(self, message, auto_cache=True, wait_silence=False):
+        if not message:
+            return
         logging.debug('saying: ' + message)
         message_filepath = self.message_filepath(message, auto_cache)
-
         if message_filepath not in self._voices:
             logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
             tts(message_filepath, message)
             self._voices[message_filepath] = pygame.mixer.Sound(message_filepath)
 
         if message_filepath in self._voices:
+            if wait_silence:
+                while pygame.mixer.get_busy():
+                    logging.debug('waiting the mixer is idle before speaking again.')
+                    pygame.time.wait(1000)
             self._voices[message_filepath].play()
 
 
