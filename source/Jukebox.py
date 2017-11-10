@@ -5,6 +5,7 @@ import argparse
 import logging
 import os
 import time
+import datetime
 from os.path import abspath, join, basename, dirname, isdir, splitext
 from glob import glob
 import locale
@@ -19,6 +20,46 @@ __author__ = 'jumo'
 
 # force local to FR
 locale.setlocale(locale.LC_TIME, 'fr-FR' if os.name is 'nt' else 'fr_FR')
+
+
+def welcome_message():
+    welcome_message = 'Nous somme le {week:} {day:} {month:} {year:}.'.format(
+        week=time.strftime('%A'),
+        day=time.strftime('%d') if not int(time.strftime('%d')) == 1 else 'premier',
+        month=time.strftime('%B'),
+        year=time.strftime('%Y')
+    )
+    return welcome_message
+
+
+def special_announcements():
+    today = datetime.datetime.now()
+    date_str = '{:02d}/{:02d}'.format(today.day, today.month)
+    birthdate = {
+        '15/02': {
+            'name': 'Julien',
+            'year': 1980
+        },
+        '25/02': {
+            'name': 'Manon',
+            'year': 2012
+        },
+        '12/03': {
+            'name': 'Manon',
+            'year': 1980
+        },
+        '23/08': {
+            'name': 'Anaïs',
+            'year': 2013
+        }
+    }
+
+    if date_str in birthdate:
+        return 'Je souhaite un très bon anniversaire à {name:} pour ses {age:} ans.'.format(
+            **birthdate[date_str], age=today.year - birthdate[date_str]['year']
+        )
+    else:
+        return None
 
 
 class Track:
@@ -151,15 +192,9 @@ class Jukebox:
     def main_loop(self):
         self.load()
 
-        welome_message = 'Nous somme le {week:} {day:} {month:} {year:}.'.format(
-            week=time.strftime('%A'),
-            day=time.strftime('%d') if not int(time.strftime('%d')) == 1 else 'premier',
-            month=time.strftime('%B'),
-            year=time.strftime('%Y')
-        )
-
-        self._speaker.speak('bonjour')
-        self._speaker.speak(welome_message, auto_cache=False)
+        self._speaker.speak('bonjour', wait_silence=True)
+        self._speaker.speak(welcome_message(), auto_cache=False, wait_silence=True)
+        self._speaker.speak(special_announcements(), wait_silence=True)
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
