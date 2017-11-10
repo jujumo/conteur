@@ -6,6 +6,7 @@ import logging
 import os
 import time
 import datetime
+import random
 from os.path import abspath, join, basename, dirname, isdir, splitext
 from glob import glob
 import locale
@@ -103,8 +104,15 @@ class Disk:
     def get_current_track(self):
         return self._tracks[self._track_idx_current]
 
-    def on_change_track(self, increment):
+    def get_tracks(self):
+        return self._tracks
+
+    def change_track(self, increment):
         self._track_idx_current += increment
+        self._track_idx_current %= len(self._tracks)
+
+    def set_track(self, idx):
+        self._track_idx_current = idx
         self._track_idx_current %= len(self._tracks)
 
     def name(self):
@@ -147,8 +155,15 @@ class Jukebox:
         self._speaker.speak(self.get_current_disk().get_current_track().name(), wait_silence=True)
 
     def on_track_change(self, increment):
-        self.get_current_disk().on_change_track(increment)
+        self.get_current_disk().change_track(increment)
         self._speaker.speak(self.get_current_disk().get_current_track().name())
+
+    def on_random(self):
+        self._disk_idx_selected = random.choice(range(len(self._disks)))
+        track = random.choice(range(len(self.get_current_disk().get_tracks())))
+        self.get_current_disk().set_track(track)
+        self._speaker.speak(self._disks[self._disk_idx_selected].name(), wait_silence=True)
+        self._speaker.speak(self.get_current_disk().get_current_track().name(), wait_silence=True)
 
     def on_info(self):
         self._speaker.speak(self.get_current_disk().name(), wait_silence=True)
@@ -177,6 +192,8 @@ class Jukebox:
             self.on_stop()
         elif 7 == button_id:  # button play
             self.on_play()
+        elif 5 == button_id:  # button random
+            self.on_random()
         else:
             self.on_info()
 
@@ -205,7 +222,7 @@ class Jukebox:
         self._speaker.speak('bonjour', wait_silence=True)
         self._speaker.speak(welcome_message(), auto_cache=False, wait_silence=True)
         self._speaker.speak(special_announcements(), wait_silence=True)
-        self.on_info()
+        self.on_random()
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
