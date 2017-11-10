@@ -19,7 +19,16 @@ from Speaker import Speaker
 __author__ = 'jumo'
 
 # force local to FR
-locale.setlocale(locale.LC_TIME, 'fr-FR' if os.name is 'nt' else 'fr_FR')
+locale_tag = 'fr-FR' if os.name is 'nt' else 'fr_FR.UTF-8'
+try:
+    locale.setlocale(locale.LC_TIME, locale_tag)
+except locale.Error:
+    logging.error('local {} is not installed on your system'.format(locale_tag))
+    logging.error('to install FR on raspberry()')
+    logging.error(' sudo nano /etc/locale.gen')
+    logging.error('Remove the # from every line which you want to generate.')
+    logging.error('sudo locale-gen')
+    raise
 
 
 def welcome_message():
