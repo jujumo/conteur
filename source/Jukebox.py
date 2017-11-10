@@ -64,12 +64,11 @@ def special_announcements():
     }
 
     if date_str in birthdate:
-        return 'Je souhaite un très bon anniversaire à {name:} pour ses {age:} ans.'.format(
-            **birthdate[date_str], age=today.year - birthdate[date_str]['year']
-        )
+        infos = birthdate[date_str]
+        infos['age'] = today.year - infos['year']
+        return 'Je souhaite un très bon anniversaire à {name:} pour ses {age:} ans.'.format(**infos)
     else:
         return None
-
 
 class Track:
     def __init__(self, track_filepath):
