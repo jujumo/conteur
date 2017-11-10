@@ -32,14 +32,22 @@ except locale.Error:
     raise
 
 
-def welcome_message():
-    welcome_message = 'Nous somme le {week:} {day:} {month:} {year:}.'.format(
+def date_message():
+    date_mesg = 'Nous somme le {week:} {day:} {month:} {year:}.'.format(
         week=time.strftime('%A'),
         day=time.strftime('%d') if not int(time.strftime('%d')) == 1 else 'premier',
         month=time.strftime('%B'),
         year=time.strftime('%Y')
     )
-    return welcome_message
+    return date_mesg
+
+
+def time_message():
+    time_msg = 'il est {hour:} heure {minute:}.'.format(
+        hour=time.strftime('%H'),
+        minute=time.strftime('%M') if not int(time.strftime('%M')) == 0 else 'pile'
+    )
+    return time_msg
 
 
 def special_announcements():
@@ -174,6 +182,12 @@ class Jukebox:
         pygame.mixer.music.load(track_filepath)
         pygame.mixer.music.play()
 
+    def on_date(self):
+        self._speaker.speak(date_message(), auto_cache=False, wait_silence=True)
+
+    def on_time(self):
+        self._speaker.speak(time_message(), auto_cache=False, wait_silence=True)
+
     def on_stop(self):
         pygame.mixer.music.stop()
 
@@ -194,6 +208,8 @@ class Jukebox:
             self.on_play()
         elif 5 == button_id:  # button random
             self.on_random()
+        elif 8 == button_id:  # button random
+            self.on_time()
         else:
             self.on_info()
 
@@ -220,7 +236,8 @@ class Jukebox:
         self.load()
 
         self._speaker.speak('bonjour', wait_silence=True)
-        self._speaker.speak(welcome_message(), auto_cache=False, wait_silence=True)
+        self.on_date()
+        self.on_time()
         self._speaker.speak(special_announcements(), wait_silence=True)
         self.on_random()
         ask_exit = False
