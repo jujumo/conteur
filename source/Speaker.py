@@ -21,8 +21,20 @@ class Speaker:
         if not isdir(self._voices_dirpath):
             os.makedirs(self._voices_dirpath)
         # populate voices
+        self._voices = {}
+        self.populate_voices()
+
+    def populate_voices(self):
         voices_files = glob(join(self._voices_dirpath, '*.wav'))
-        self._voices = {f: pygame.mixer.Sound(f) for f in voices_files}
+        self._voices = {}
+        for filepath in voices_files:
+            try:
+                sound = pygame.mixer.Sound(filepath)
+                self._voices[filepath] = sound
+            except pygame.error as e:
+                # this might be a corrupted file, just remove it
+                os.remove(filepath)
+                pass
 
     def message_filepath(self, message):
         hash = re.sub('[^A-Za-z0-9]+', '', message)
