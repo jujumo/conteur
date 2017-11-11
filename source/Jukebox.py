@@ -4,7 +4,6 @@ import pygame
 import argparse
 import logging
 import os
-import time
 import datetime
 import random
 from os.path import abspath, join, basename, dirname, isdir, splitext
@@ -33,19 +32,21 @@ except locale.Error:
 
 
 def date_message():
-    date_mesg = 'Nous somme le {week:} {day:} {month:} {year:}.'.format(
-        week=time.strftime('%A'),
-        day=time.strftime('%d') if not int(time.strftime('%d')) == 1 else 'premier',
-        month=time.strftime('%B'),
-        year=time.strftime('%Y')
+    now = datetime.datetime.now()
+    date_mesg = 'Nous somme le {week:} {day:2d} {month:} {year:4d}.'.format(
+        week=now.strftime('%A'),
+        day=now.day if not now.day == 1 else 'premier',
+        month=now.strftime('%B'),
+        year=now.year
     )
     return date_mesg
 
 
 def time_message():
-    time_msg = 'il est {hour:} heure {minute:}.'.format(
-        hour=time.strftime('%H'),
-        minute=time.strftime('%M') if not int(time.strftime('%M')) == 0 else 'pile'
+    now = datetime.datetime.now()
+    time_msg = 'il est {hour:2d} heure {minute:2d}.'.format(
+        hour=now.hour,
+        minute=now.minute if not now.minute == 0 else 'pile'
     )
     return time_msg
 
