@@ -240,7 +240,7 @@ class Jukebox:
         self.on_date()
         self.on_time()
         self._speaker.speak(special_announcements(), wait_silence=True)
-        self.on_random()
+        # self.on_random()
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
