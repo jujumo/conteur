@@ -55,8 +55,8 @@ class Speaker:
         if message_filepath in self._voices:
             if wait_silence:
                 while pygame.mixer.get_busy():
-                    logging.debug('waiting the mixer is idle before speaking again.')
-                    pygame.time.wait(500)
+                    # logging.debug('waiting the mixer is idle before speaking again.')
+                    pygame.time.wait(200)
             elif pygame.mixer.get_busy():
                 pygame.mixer.stop()
             self._voices[message_filepath].play()
