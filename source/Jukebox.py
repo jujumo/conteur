@@ -51,7 +51,7 @@ def time_message():
     return time_msg
 
 
-def special_announcements():
+def announce_anniversary():
     today = datetime.datetime.now()
     date_str = '{:02d}/{:02d}'.format(today.day, today.month)
     birthdate = {
@@ -76,9 +76,26 @@ def special_announcements():
     if date_str in birthdate:
         infos = birthdate[date_str]
         infos['age'] = today.year - infos['year']
-        return 'Je souhaite un très bon anniversaire à {name:} pour ses {age:} ans.'.format(**infos)
+        return 'Je souhaite un très bon anniversaire à {name:} pour ses {age:} ans. '.format(**infos)
     else:
         return None
+
+
+def announce_christmas():
+    today = datetime.datetime.now()
+    if today.month == 12:
+        if today.day < 25:
+            remains = 25 - today.day
+            return 'Il reste {} jour avant noël ! '.format(remains)
+        elif today.day == 25:
+            return "c'est noël."
+    return None
+
+
+def announce():
+    anniv = announce_anniversary() or '' + announce_christmas() or ''
+    return anniv if len(anniv) > 0 else None
+
 
 class Track:
     def __init__(self, track_filepath):
@@ -239,7 +256,7 @@ class Jukebox:
         self._speaker.speak('bonjour', wait_silence=True)
         self.on_date()
         self.on_time()
-        self._speaker.speak(special_announcements(), wait_silence=True)
+        self._speaker.speak(announce(), wait_silence=True)
         # self.on_random()
         ask_exit = False
         while not ask_exit:
