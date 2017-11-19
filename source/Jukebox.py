@@ -31,7 +31,7 @@ except locale.Error:
     raise
 
 
-def date_message():
+def get_announce_date():
     now = datetime.datetime.now()
     date_mesg = 'Nous somme le {week:} {day:2d} {month:} {year:4d}.'.format(
         week=now.strftime('%A'),
@@ -42,7 +42,7 @@ def date_message():
     return date_mesg
 
 
-def time_message():
+def get_announce_time():
     now = datetime.datetime.now()
     time_msg = 'il est {hour:2d} heure {minute:2d}.'.format(
         hour=now.hour,
@@ -51,7 +51,7 @@ def time_message():
     return time_msg
 
 
-def announce_anniversary():
+def get_announce_anniversary():
     today = datetime.datetime.now()
     date_str = '{:02d}/{:02d}'.format(today.day, today.month)
     birthdate = {
@@ -81,7 +81,7 @@ def announce_anniversary():
         return None
 
 
-def announce_christmas():
+def get_announce_christmas():
     today = datetime.datetime.now()
     if today.month == 12:
         if today.day < 25:
@@ -92,9 +92,10 @@ def announce_christmas():
     return None
 
 
-def announce():
-    anniv = announce_anniversary() or '' + announce_christmas() or ''
-    return anniv if len(anniv) > 0 else None
+def get_announcents():
+    announce_msg_list = ['Bonjour.']
+    announce_msg_list += [msg for msg in [get_announce_date(), get_announce_anniversary(), get_announce_christmas()] if msg]
+    return announce_msg_list
 
 
 class Track:
@@ -201,10 +202,10 @@ class Jukebox:
         pygame.mixer.music.play()
 
     def on_date(self):
-        self._speaker.speak(date_message(), auto_cache=False, wait_silence=True)
+        self._speaker.speak(get_announce_date(), auto_cache=False, wait_silence=True)
 
     def on_time(self):
-        self._speaker.speak(time_message(), auto_cache=False, wait_silence=True)
+        self._speaker.speak(get_announce_time(), auto_cache=False, wait_silence=True)
 
     def on_stop(self):
         pygame.mixer.music.stop()
@@ -252,12 +253,8 @@ class Jukebox:
 
     def main_loop(self):
         self.load()
-
-        self._speaker.speak('bonjour', wait_silence=True)
-        self.on_date()
-        self.on_time()
-        self._speaker.speak(announce(), wait_silence=True)
-        # self.on_random()
+        for announce in get_announcents():
+            self._speaker.speak(announce, wait_silence=True)
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
