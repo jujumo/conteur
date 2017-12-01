@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 import pygame
-# from pygame.locals import *
-import argparse
 import logging
 import os
-from glob import glob
 from os.path import abspath, join, isfile, dirname, isdir, exists
 import re
 # local includes

@@ -1,5 +1,5 @@
 import os
-from os.path import abspath, join, isfile, dirname, isdir
+from os.path import splitext
 from subprocess import check_call, Popen
 import tempfile
 import logging
@@ -24,7 +24,11 @@ def tts_normalize(filepath_in, filepath_out, rate=22050):
         # relies on ffmpeg on windows
         cmd = ['ffmpeg', '-i', filepath_in, '-ar', str(rate), '-y', filepath_out]
     else:
-        cmd = ['sox', '-t', 'mp3', filepath_in, filepath_out, 'rate', str(rate)]
+        # get audio format from file extension.
+        # if no extension its been downloaded from internet, and assume its mp3
+        type_of_input = splitext(filepath_in)[1][1:] or 'mp3'
+        type_of_output = splitext(filepath_out)[1][1:] or 'wav'
+        cmd = ['sox', '-t', type_of_input, filepath_in, '-t', type_of_output, filepath_out, 'rate', str(rate)]
 
     try:
         success = check_call(cmd)
