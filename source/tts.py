@@ -7,7 +7,7 @@ import urllib.request
 import urllib.parse
 
 
-VOXYGEN_URL_FMT = 'https://www.voxygen.fr/sites/all/modules/voxygen_voices/assets/proxy/index.php?method=redirect&text={message}&voice={voice}'
+VOXYGEN_URL_FMT = 'https://www.voxygen.fr/sites/all/modules/voxygen_voices/assets/proxy/index.php?method=redirect&text={message}&voice=Marion'
 VOICERSS_URL_FMT = 'http://api.voicerss.org/?key=125f646630aa40649a5ef922dea3e76c&hl=fr-fr&src={message}'
 MYBLUEMIX_URL_FMT = 'https://text-to-speech-demo.mybluemix.net/api/synthesize?voice=fr-FR_ReneeVoice&download=true&accept=audio%2Fmp3&text={message}'
 
@@ -35,7 +35,7 @@ def tts_normalize(filepath_in, filepath_out, rate=22050):
         return False
 
 
-def tts_pico(filepath, message):
+def tts_pico(message, filepath):
     tmp_filepath = get_temp_filepath() + '.wav'
     cmd = ['pico2wave', '-l', 'fr-FR', '-w', tmp_filepath, message]
     check_call(cmd)
@@ -43,23 +43,31 @@ def tts_pico(filepath, message):
     os.remove(tmp_filepath)
 
 
-def tts_voxygen(filepath, message):
-    voice = 'Marion'
+def tts_online(message, filepath):
     message = urllib.parse.quote(message)
-    url = MYBLUEMIX_URL_FMT.format(message=message, voice=voice)
+    url = MYBLUEMIX_URL_FMT.format(message=message)
     logging.debug('requesting: {}'.format(url))
     tmp_filepath, headers = urllib.request.urlretrieve(url)
     tts_normalize(tmp_filepath, filepath)
     os.remove(tmp_filepath)
 
 
-def tts(filepath, message):
-    # first try voxygen, and fallback on pico if needed
+def tts(message, filepath):
+    # first try online, and fallback on pico if needed
     try:
-        logging.debug('try to get voice from voxygen')
-        tts_voxygen(filepath, message)
+        logging.debug('try to get voice online')
+        tts_online(message, filepath)
+        return True
     except IOError as e:
         logging.debug(e)
-        logging.debug('voxygen failed, fallback on pico')
-        tts_pico(filepath, message)
+        logging.debug('online failed')
 
+    try:
+        logging.debug('fallback on pico')
+        tts_pico(message, filepath)
+        return True
+    except IOError as e:
+        logging.debug(e)
+        logging.debug('pico failed')
+
+    return False

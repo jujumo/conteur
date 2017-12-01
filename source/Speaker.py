@@ -20,21 +20,6 @@ class Speaker:
         self._voices_dirpath = join(voices_dirpath)
         if not isdir(self._voices_dirpath):
             os.makedirs(self._voices_dirpath)
-        # populate voices
-        self._voices = {}
-        self.populate_voices()
-
-    def populate_voices(self):
-        voices_files = glob(join(self._voices_dirpath, '*.wav'))
-        self._voices = {}
-        for filepath in voices_files:
-            try:
-                sound = pygame.mixer.Sound(filepath)
-                self._voices[filepath] = sound
-            except pygame.error as e:
-                # this might be a corrupted file, just remove it
-                os.remove(filepath)
-                pass
 
     def message_filepath(self, message, auto_cache=True):
         dirpath = self._voices_dirpath if auto_cache else gettempdir()
@@ -46,19 +31,23 @@ class Speaker:
             return
         logging.debug('saying: ' + message)
         message_filepath = self.message_filepath(message, auto_cache)
-        if message_filepath not in self._voices:
-            if not exists(message_filepath):
-                logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
-                tts(message_filepath, message)
-            self._voices[message_filepath] = pygame.mixer.Sound(message_filepath)
 
-        if message_filepath in self._voices:
-            if wait_silence:
-                while pygame.mixer.get_busy():
-                    # logging.debug('waiting the mixer is idle before speaking again.')
-                    pygame.time.wait(200)
-            elif pygame.mixer.get_busy():
-                pygame.mixer.stop()
-            self._voices[message_filepath].play()
+        if not exists(message_filepath):
+            logging.debug('no voice file ({}) for message: "{}"'.format(message_filepath, message))
+            tts(message, message_filepath)
+
+        if not exists(message_filepath):
+            logging.error('unable to generate file ({}) for message: "{}".'.format(message_filepath, message))
+            return
+
+        voice = pygame.mixer.Sound(message_filepath)
+
+        if wait_silence:
+            while pygame.mixer.get_busy():
+                # logging.debug('waiting the mixer is idle before speaking again.')
+                pygame.time.wait(200)
+        elif pygame.mixer.get_busy():
+            pygame.mixer.stop()
+        voice.play()
 
 
