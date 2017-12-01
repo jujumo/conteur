@@ -33,7 +33,7 @@ except locale.Error:
 
 def get_announce_date():
     now = datetime.datetime.now()
-    date_mesg = 'Nous somme le {week:} {day:2d} {month:} {year:4d}.'.format(
+    date_mesg = 'Nous somme le {week:} {day:} {month:} {year:4d}.'.format(
         week=now.strftime('%A'),
         day=now.day if not now.day == 1 else 'premier',
         month=now.strftime('%B'),
