@@ -1,6 +1,6 @@
 from configparser import ConfigParser
 import logging
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname, join, normpath
 
 
 class Config:
@@ -17,8 +17,10 @@ class Config:
         parser.read(self.config_filepath)
         if 'SETTINGS' in parser.sections():
             settings = parser['SETTINGS']
-            self.stories_dirpath = abspath(settings.get('stories', self.stories_dirpath))
-            self.voices_dirpath = abspath(settings.get('voices', self.voices_dirpath))
+            self.stories_dirpath = settings.get('stories', self.stories_dirpath)
+            self.stories_dirpath = normpath(join(self.config_dirpath, self.stories_dirpath))
+            self.voices_dirpath = settings.get('voices', self.voices_dirpath)
+            self.voices_dirpath = normpath(join(self.config_dirpath, self.voices_dirpath))
         if 'BOOKMARK' in parser.sections():
             self.bookmark = parser['BOOKMARK']
 
