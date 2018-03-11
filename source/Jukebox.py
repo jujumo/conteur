@@ -186,6 +186,15 @@ class Jukebox:
         if os.name is 'nt':
             # windows needs a window to play music
             window = pygame.display.set_mode((640, 600))
+            logging.info('esc to quit \n'
+                         '1: previous disk\n'
+                         '4: next disk\n'
+                         '2: previous track\n'
+                         '3: next track\n'
+                         '6: stop\n'
+                         '7: play\n'
+                         '5: random\n'
+                         '8: random\n')
         self._speaker = Speaker(config.voices_dirpath)
         pygame.mixer.music.set_volume(1.0)
         logging.info('init successful')
