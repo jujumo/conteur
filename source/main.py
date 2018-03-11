@@ -20,7 +20,7 @@ def main():
     try:
         parser = argparse.ArgumentParser(description='Jukebox is a simple disk player triggered by gamepad buttons.')
         parser.add_argument('-v', '--verbose', action='store_true', help='verbose message')
-        parser.add_argument('-c', '--config', required=True, help='config file')
+        parser.add_argument('-c', '--config', default='../config.ini', help='config file')
         parser.add_argument('-l', '--log', help='specify log file')
 
         args = parser.parse_args()
@@ -45,6 +45,7 @@ def main():
 
     finally:
         pygame.quit()
+
 
 if __name__ == '__main__':
     main()
