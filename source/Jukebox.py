@@ -151,7 +151,9 @@ class Disk:
         self._dirpath = disk_dirpath
         self._name = basename(disk_dirpath)
         logging.debug('populating disk {name}'.format(name=self._name))
-        self._tracks = [Track(join(p, n)) for p, sd, fs in os.walk(self._dirpath) for n in fs if n.lower().endswith(".mp3")]
+        self._tracks = ([Track(join(p, n))
+                               for p, sd, fs in os.walk(self._dirpath)
+                               for n in sorted(fs) if n.lower().endswith(".mp3")])
         self._track_idx_current = 0
 
     def get_current_track(self):
@@ -202,7 +204,9 @@ class Jukebox:
     def populate_disks(self, disks_rootpath):
         self._disks = []
         # list every folder that contains at least one mp3
-        file_list = (join(p, n) for p, sd, fs in os.walk(disks_rootpath) for n in fs if n.lower().endswith(".mp3"))
+        file_list = (join(p, n)
+                     for p, sd, fs in os.walk(disks_rootpath)
+                     for n in sorted(fs) if n.lower().endswith(".mp3"))
         disk_set = set(dirname(f) for f in file_list)
         for disk_path in disk_set:
             self._disks += [Disk(disk_path)]
