@@ -14,7 +14,7 @@ import re
 from Config import Config
 from Buttons import Buttons
 from Speaker import Speaker
-
+from Calendar import Calendar
 
 __author__ = 'jumo'
 
@@ -29,99 +29,6 @@ except locale.Error:
     logging.error('Remove the # from every line which you want to generate.')
     logging.error('sudo locale-gen')
     raise
-
-
-def get_announce_date():
-    now = datetime.datetime.now()
-    date_message = 'Nous somme le {week:} {day:} {month:} {year:4d}.'.format(
-        week=now.strftime('%A'),
-        day=now.day if not now.day == 1 else 'premier',
-        month=now.strftime('%B'),
-        year=now.year
-    )
-    date_announce = {
-        'message': date_message,
-        'auto_cache': False
-    }
-    return date_announce
-
-
-def get_announce_time():
-    now = datetime.datetime.now()
-    time_message = 'il est {hour:2d} heure {minute:2d}.'.format(
-        hour=now.hour,
-        minute=now.minute if not now.minute == 0 else 'pile'
-    )
-    time_announce = {
-        'message': time_message,
-        'auto_cache': False
-    }
-    return time_announce
-
-
-def get_announce_anniversary():
-    today = datetime.datetime.now()
-    date_str = '{:02d}/{:02d}'.format(today.day, today.month)
-    birthdate = {
-        '15/02': {
-            'name': 'Julien',
-            'year': 1980
-        },
-        '25/02': {
-            'name': 'Manon',
-            'year': 2012
-        },
-        '12/03': {
-            'name': 'Manon',
-            'year': 1980
-        },
-        '23/08': {
-            'name': 'Anaïs',
-            'year': 2013
-        }
-    }
-
-    if date_str in birthdate:
-        infos = birthdate[date_str]
-        infos['age'] = today.year - infos['year']
-        anniversary_message = 'Je souhaite un très bon anniversaire à {name:} pour ses {age:} ans. '.format(**infos)
-        anniversary_announce = {
-            'message': anniversary_message,
-            'auto_cache': True
-        }
-        return anniversary_announce
-    else:
-        return None
-
-
-def get_announce_christmas():
-    today = datetime.datetime.now()
-    if today.month == 12:
-        if today.day < 25:
-            remains = 25 - today.day
-            christmas_message = 'Il reste {} jour avant noël ! '.format(remains)
-        elif today.day == 25:
-            christmas_message = "C'est noël aujourd'hui."
-        christmas_announce ={
-            'message': christmas_message,
-            'auto_cache': True
-        }
-        return christmas_announce
-
-    return None
-
-
-def get_announcements():
-    announce_msg_list = [
-        get_announce_date(),
-        get_announce_anniversary(),
-        get_announce_christmas(),
-        get_announce_time()
-    ]
-    announce_msg_list = [m for m in announce_msg_list if m]
-    for a in announce_msg_list:
-        a.update({'wait_silence': True})
-    return announce_msg_list
 
 
 class Track:
@@ -196,8 +103,9 @@ class Jukebox:
                          '6: stop\n'
                          '7: play\n'
                          '5: random\n'
-                         '8: random\n')
+                         '8: time\n')
         self._speaker = Speaker(config.voices_dirpath)
+        self._calendar = Calendar(config.calendar_filepath)
         pygame.mixer.music.set_volume(1.0)
         logging.info('init successful')
 
@@ -241,7 +149,7 @@ class Jukebox:
         pygame.mixer.music.play()
 
     def on_date(self):
-        self._speaker.speak(get_announce_date(), auto_cache=False, wait_silence=True)
+        self._speaker.speak(get_speakable_date(), auto_cache=False, wait_silence=True)
 
     def on_time(self):
         for announce in get_announcements():
@@ -293,8 +201,8 @@ class Jukebox:
 
     def main_loop(self):
         self.load()
-        for announce in get_announcements():
-            self._speaker.speak(**announce)
+        for announce in self._calendar.get_announcements():
+            self._speaker.speak(announce, auto_cache=False, wait_silence=True)
         ask_exit = False
         while not ask_exit:
             for event in pygame.event.get():
