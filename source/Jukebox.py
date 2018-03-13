@@ -106,7 +106,7 @@ class Jukebox:
                          '8: time\n')
         self._speaker = Speaker(config.voices_dirpath)
         self._calendar = Calendar(config.calendar_filepath)
-        pygame.mixer.music.set_volume(1.0)
+        pygame.mixer.music.set_volume(self._config.volume)
         logging.info('init successful')
 
     def populate_disks(self, disks_rootpath):
@@ -149,18 +149,17 @@ class Jukebox:
         pygame.mixer.music.play()
 
     def on_date(self):
-        self._speaker.speak(get_speakable_date(), auto_cache=False, wait_silence=True)
+        self._speaker.speak(self._calendar.get_speakable_date(), auto_cache=False, wait_silence=True)
 
     def on_time(self):
-        for announce in get_announcements():
-            self._speaker.speak(**announce)
+        for announce in self._calendar.get_announcements():
+            self._speaker.speak(announce, auto_cache=False, wait_silence=True)
 
     def on_stop(self):
         pygame.mixer.music.stop()
 
     def button_pushed(self, button_id):
         logging.info('button {} pushed.'.format(button_id))
-        logging.info('play selection')
         if 1 == button_id:  # button previous disk
             self.on_change_disk(-1)
         elif 4 == button_id:  # button next disk
