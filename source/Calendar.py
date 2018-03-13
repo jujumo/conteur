@@ -27,7 +27,7 @@ except locale.Error:
 SPEAKABLE_DATE_FORMAT = 'Nous somme le {week:} {day:} {month:} {year:4d}.'
 SPEAKABLE_TIME_FORMAT = 'Il est {hour:2d} heure {minute:2d}.'
 SPEAKABLE_TIME_FORMAT_ROUND = 'pile'
-SPEAKABLE_ANNI_FORMAT = 'Je souhaite un très bon anniversaire à {name:} pour ses {age:} ans.'
+SPEAKABLE_ANNI_FORMAT = 'Je souhaite un très bon anniversaire à {birth_name:} pour ses {age:} ans.'
 
 
 class Calendar:
@@ -37,8 +37,10 @@ class Calendar:
             self.load(filepath)
 
     def load(self, filepath):
-        # self._events = json.load(open(filepath))
-        pass
+        try:
+            self._events = json.load(open(filepath))
+        except:
+            self._events = {}
 
     @staticmethod
     def get_speakable_date():
@@ -64,29 +66,10 @@ class Calendar:
     def get_speakable_anniversary(self):
         today = datetime.datetime.now()
         date_str = '{:02d}/{:02d}'.format(today.day, today.month)
-        birthdate = {
-            '15/02': {
-                'name': 'Julien',
-                'year': 1980
-            },
-            '25/02': {
-                'name': 'Manon',
-                'year': 2012
-            },
-            '12/03': {
-                'name': 'Manon',
-                'year': 1980
-            },
-            '23/08': {
-                'name': 'Anaïs',
-                'year': 2013
-            }
-        }
-
-        if date_str in birthdate:
-            infos = birthdate[date_str]
-            infos['age'] = today.year - infos['year']
-            anniversary_message = SPEAKABLE_ANNI_FORMAT.format(**infos)
+        event = self._events[date_str] if date_str in self._events else None
+        if event and event['type'] == 'anniversary':
+            event['age'] = today.year - event['birth_year']
+            anniversary_message = SPEAKABLE_ANNI_FORMAT.format(**event)
             return anniversary_message
         else:
             return None
