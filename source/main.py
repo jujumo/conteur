@@ -34,7 +34,7 @@ def main():
 
         config = Config(abspath(args.config))
         config.load()
-        config.save()
+        # config.save()
         jukebox = Jukebox(config)
         jukebox.main_loop()
 
