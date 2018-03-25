@@ -81,6 +81,20 @@ class Disk:
         return self._name
 
 
+def populate_disks(disks_rootpath):
+    logging.debug('disk root directory {}'.format(disks_rootpath))
+    disks = []
+    # list every folder that contains at least one mp3
+    file_list = (join(p, n)
+                 for p, sd, fs in os.walk(disks_rootpath)
+                 for n in sorted(fs) if n.lower().endswith(".mp3"))
+    disk_set = set(dirname(f) for f in file_list)
+    for disk_path in disk_set:
+        disks += [Disk(disk_path)]
+
+    return disks
+
+
 class Jukebox:
     def __init__(self, config):
         # pygame.mixer.pre_init(16000)
@@ -91,7 +105,7 @@ class Jukebox:
         self._config = config
         self._clock = pygame.time.Clock()
         self._disk_idx_selected = 0
-        self.populate_disks(config.stories_dirpath)
+        self._disks = populate_disks(config.stories_dirpath)
         if os.name is 'nt':
             # windows needs a window to play music
             window = pygame.display.set_mode((640, 600))
@@ -108,16 +122,6 @@ class Jukebox:
         self._calendar = Calendar(config.calendar_filepath)
         pygame.mixer.music.set_volume(self._config.volume)
         logging.info('init successful')
-
-    def populate_disks(self, disks_rootpath):
-        self._disks = []
-        # list every folder that contains at least one mp3
-        file_list = (join(p, n)
-                     for p, sd, fs in os.walk(disks_rootpath)
-                     for n in sorted(fs) if n.lower().endswith(".mp3"))
-        disk_set = set(dirname(f) for f in file_list)
-        for disk_path in disk_set:
-            self._disks += [Disk(disk_path)]
 
     def get_current_disk(self):
         return self._disks[self._disk_idx_selected]
@@ -179,6 +183,7 @@ class Jukebox:
         else:
             self.on_info()
 
+    @staticmethod
     def volume_increment(self, increment):
         volume = pygame.mixer.music.get_volume()
         logging.debug('old volume {}'.format(volume))
