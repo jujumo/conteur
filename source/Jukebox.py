@@ -184,7 +184,7 @@ class Jukebox:
             self.on_info()
 
     @staticmethod
-    def volume_increment(self, increment):
+    def volume_increment(increment):
         volume = pygame.mixer.music.get_volume()
         logging.debug('old volume {}'.format(volume))
         # apply increment
@@ -214,10 +214,10 @@ class Jukebox:
                     ask_exit = True
                 elif event.type == pygame.JOYAXISMOTION:
                     if event.axis == 0 and not event.value == 0:
-                        logging.debug('joystick {}'.format(event.value))
+                        logging.debug('joystick x{}'.format(event.value))
                         self.volume_increment(event.value)
                     elif event.axis == 1 and not event.value == 0:
-                        logging.debug('joystick 2{}'.format(event.value))
+                        logging.debug('joystick y{}'.format(event.value))
                 elif event.type == pygame.JOYBUTTONDOWN:
                     logging.debug('button {}'.format(event.button))
                     self.button_pushed(event.button+1)
