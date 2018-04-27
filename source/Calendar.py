@@ -25,7 +25,7 @@ except locale.Error:
 
 
 SPEAKABLE_DATE_FORMAT = 'Nous somme le {week:} {day:} {month:} {year:4d}.'
-SPEAKABLE_TIME_FORMAT = 'Il est {hour:2d} heure {minute:2d}.'
+SPEAKABLE_TIME_FORMAT = 'Il est {hour} heure {minute}.'
 SPEAKABLE_TIME_FORMAT_ROUND = 'pile'
 SPEAKABLE_ANNI_FORMAT = 'Je souhaite un très bon anniversaire à {birth_name:} pour ses {age:} ans.'
 
