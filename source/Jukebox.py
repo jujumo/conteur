@@ -31,6 +31,9 @@ except locale.Error:
     raise
 
 
+EVENT_SONG_END = pygame.USEREVENT + 1
+
+
 class Track:
     def __init__(self, track_filepath):
         self._filepath = track_filepath
@@ -63,11 +66,24 @@ class Disk:
                                for n in sorted(fs) if n.lower().endswith(".mp3")])
         self._track_idx_current = 0
 
+    def get_dirpath(self):
+        return self._dirpath
+
+    def get_current_track_idx(self):
+        return self._track_idx_current
+
     def get_current_track(self):
-        return self._tracks[self._track_idx_current]
+        idx = self.get_current_track_idx()
+        return self.get_track(idx)
 
     def get_tracks(self):
         return self._tracks
+
+    def get_nb_tracks(self):
+        return len(self._tracks)
+
+    def get_track(self, idx):
+        return self._tracks[idx]
 
     def change_track(self, increment):
         self._track_idx_current += increment
@@ -101,22 +117,24 @@ class Jukebox:
         pygame.init()
         # pygame.mixer.init(11025)
         pygame.mixer.music.set_volume(1.0)
+        pygame.mixer.music.set_endevent(EVENT_SONG_END)
         self._buttons = Buttons()
         self._config = config
         self._clock = pygame.time.Clock()
         self._disk_idx_selected = 0
         self._disks = populate_disks(config.stories_dirpath)
+        self._playlist = []
         if os.name is 'nt':
             # windows needs a window to play music
             window = pygame.display.set_mode((640, 600))
             logging.info('esc to quit \n'
                          '1: previous disk\n'
-                         '4: next disk\n'
                          '2: previous track\n'
                          '3: next track\n'
-                         '6: stop\n'
-                         '7: play\n'
-                         '5: random\n'
+                         '4: next disk\n'
+                         '4: stop\n'
+                         '5: play disc\n'
+                         '6: play track\n'
                          '8: time\n')
         self._speaker = Speaker(config.voices_dirpath)
         self._calendar = Calendar(config.calendar_filepath)
@@ -147,9 +165,24 @@ class Jukebox:
         self._speaker.speak(self.get_current_disk().name(), wait_silence=True)
         self._speaker.speak(self.get_current_disk().get_current_track().name(), wait_silence=True)
 
-    def on_play(self):
-        track_filepath = self.get_current_disk().get_current_track().filepath()
-        pygame.mixer.music.load(track_filepath)
+    def on_play_track(self):
+        self._playlist = [self.get_current_disk().get_current_track()]
+        self.play_next_in_list()
+
+    def on_play_disc(self):
+        first_to_play_idx = self.get_current_disk().get_current_track_idx()
+        self._playlist = self.get_current_disk().get_tracks()[first_to_play_idx:]  # make sur to make a copy
+        self.play_next_in_list()
+
+    def play_next_in_list(self):
+        # pop next song to play
+        if not self._playlist:
+            # nothing more to play
+            return
+
+        track = self._playlist.pop(0)
+        logging.info('playing {}'.format(track.name()))
+        pygame.mixer.music.load(track.filepath())
         pygame.mixer.music.play()
 
     def on_date(self):
@@ -166,19 +199,19 @@ class Jukebox:
         logging.info('button {} pushed.'.format(button_id))
         if 1 == button_id:  # button previous disk
             self.on_change_disk(-1)
-        elif 4 == button_id:  # button next disk
-            self.on_change_disk(+1)
         elif 2 == button_id:  # button previous track
             self.on_track_change(-1)
         elif 3 == button_id:  # button next track
             self.on_track_change(+1)
-        elif 6 == button_id:  # button stop
+        elif 4 == button_id:  # button next disk
+            self.on_change_disk(+1)
+        elif 5 == button_id:  # button stop
             self.on_stop()
+        elif 6 == button_id:  # button play disc
+            self.on_play_disc()
         elif 7 == button_id:  # button play
-            self.on_play()
-        elif 5 == button_id:  # button random
-            self.on_random()
-        elif 8 == button_id:  # button random
+            self.on_play_track()
+        elif 8 == button_id:  # button get time
             self.on_time()
         else:
             self.on_info()
@@ -232,6 +265,8 @@ class Jukebox:
                     self.volume_increment(increment)
                 elif event.type == 2:
                     logging.debug('key pressed {}'.format(event.key))
+                elif event.type == EVENT_SONG_END:
+                    self.play_next_in_list()
 
             self._clock.tick(5)  # 5 fps
 
