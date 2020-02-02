@@ -1,0 +1,3 @@
+certifi==2019.11.28
+pygame==1.9.6
+wincertstore==0.2
