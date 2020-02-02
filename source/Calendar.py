@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-import pygame
-# from pygame.locals import *
 import logging
 import os
 import datetime
 import locale
-import re
 # local includes
 import json
 
