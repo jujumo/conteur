@@ -145,12 +145,16 @@ class Jukebox:
         return self._disks[self._disk_idx_selected]
 
     def on_change_disk(self, increment):
+        if not self._disks:
+            return
         self._disk_idx_selected += increment
         self._disk_idx_selected %= len(self._disks)
         self._speaker.speak(self.get_current_disk().name())
         self._speaker.speak(self.get_current_disk().get_current_track().name(), wait_silence=True)
 
     def on_track_change(self, increment):
+        if not self._disks:
+            return
         self.get_current_disk().change_track(increment)
         self._speaker.speak(self.get_current_disk().get_current_track().name())
 
