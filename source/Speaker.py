@@ -2,7 +2,7 @@
 import pygame
 import logging
 import os
-from os.path import abspath, join, isfile, dirname, isdir, exists
+from os.path import join, isdir, exists
 import re
 # local includes
 from tts import tts

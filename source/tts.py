@@ -11,6 +11,7 @@ VOXYGEN_URL_FMT = 'https://www.voxygen.fr/sites/all/modules/voxygen_voices/asset
 VOICERSS_URL_FMT = 'http://api.voicerss.org/?key=125f646630aa40649a5ef922dea3e76c&hl=fr-fr&src={message}'
 MYBLUEMIX_URL_FMT = 'https://text-to-speech-demo.ng.bluemix.net/api/v1/synthesize?text={message}&voice=fr-FR_ReneeVoice&download=true&accept=audio%2Fmp3'
 
+
 def get_temp_filepath():
     f = tempfile.NamedTemporaryFile()
     temp_filepath = f.name

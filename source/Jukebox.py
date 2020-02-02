@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 import pygame
-# from pygame.locals import *
-import argparse
 import logging
 import os
-import datetime
 import random
 from os.path import abspath, join, basename, dirname, isdir, splitext
-from glob import glob
 import locale
 import re
 # local includes
