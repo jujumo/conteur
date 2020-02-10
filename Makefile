@@ -16,10 +16,10 @@ uninstall_source:
 	rm -rf $(INSTALL_DIR)
 
 # config #####################################################################
-install_config: $(DATA_PATH)
+install_config: $(DATA_PATH)/config.ini
 
-$(DATA_PATH): config.ini
-	mkdir -p $@/voices $@/disks
+$(DATA_PATH)/config.ini: config.ini
+	mkdir -p $(DATA_PATH)/voices $(DATA_PATH)/disks
 	cp $^ $@
 	
 uninstall_config:
