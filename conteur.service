@@ -1,0 +1,14 @@
+[Unit]
+Description=conteur
+After = multi-user.target
+
+[Service]
+Type = simple
+ExecStart=/usr/bin/python3 /opt/bin/conteur -c /shared/conteur/config.ini
+WorkingDirectory=/opt/bin/conteur
+User=root
+Restart=always
+
+
+[Install]
+WantedBy = multi-user.target
