@@ -28,7 +28,7 @@ uninstall_config:
 # service #####################################################################
 install_service: $(SERVICE_FILEPATH)
 
-$(SERVICE_FILEPATH): connteur.service
+$(SERVICE_FILEPATH): conteur.service
 	cp $< $@
 	chmod +x $@
 	systemctl enable $(PROJECT_NAME)
