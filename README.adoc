@@ -3,20 +3,35 @@
 _Conteur_ is a simple jukebox application.
 
 == description
+
+.Overview
+image:assets/outside 1.jpg["the box", width=100%]
+
 It is targeted for Raspberry Pi equiped only with joystick and a loud speaker (no screen).
-It provides the usual functions : 
-- play disc,
-- play track, 
-- stop, 
-- next track, 
-- previous track, 
-- next disc, 
-- previous disc.
+It provides the usual functions :
+
+|===
+| previous disc | previous track    | next track | next disk
+|               |play disc          | play track | tells time
+|===
+
+.the buttons
+image:assets/buttons.jpg["buttons", width=50%]
 
 
-It speaks out loud the title (filename) of the disc and track. 
+It speaks out loud the title (filename) of the disc and track.
 
 == install
+
+=== Hardware
+
+.inside
+image:assets/inside.jpg[inside]
+
+ . Orangepi zero + audio extension board
+ . arcade joystick kit with USb
+ . PC loudspeakers with 3.5 jack
+ . triplette + power supplies
 
 === orangepi zero
 
@@ -68,7 +83,7 @@ public=yes
 === pygame
 pygame, ...
 
-Text-to-speech  will use internet connexion if available, or use the raspberry pi capabilities as fallback.  
+Text-to-speech  will use internet connexion if available, or use the raspberry pi capabilities as fallback.
 
 Targeted for linux, but can also run on windows.
 
@@ -84,7 +99,6 @@ sudo apt install -y python3-pip python3-setuptools python3-pygame
 [source,bash]
 .$>sh
 ----
-
 # local fr_FR.UTF-8 is not installed on your system
 sudo nano /etc/locale.gen
 # uncomment  every line which you want to generate.
@@ -92,6 +106,9 @@ sudo locale-gen
 
 git clone https://github.com/jujumo/conteur.git
 cd conteur
-pip3 install -r requirements.txt
-
+sudo make install
 ----
+
+=== diagnose
+
+systemd-analyze blame
